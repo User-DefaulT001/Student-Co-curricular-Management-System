@@ -53,3 +53,12 @@ include('includes/sidebar.php');
 </div>
 <?php include('includes/footer.php'); ?>
 ```
+
+### Updated main branch 
+```
+git fetch origin
+git remote set-head origin -a
+# Replace 'new-branch-name' with your actual branch name (e.g., dev)
+git checkout new-branch-name
+git pull origin new-branch-name
+```

@@ -50,6 +50,25 @@ CREATE TABLE IF NOT EXISTS merits (
     INDEX idx_date_earned (date_earned)
 );
 
+-- Create Achievements Table
+CREATE TABLE IF NOT EXISTS achievements (
+    achievement_id    INT PRIMARY KEY AUTO_INCREMENT,
+    user_id           INT NOT NULL,
+    achievement_title VARCHAR(200) NOT NULL,
+    achievement_type  ENUM('Award','Certificate','Recognition','Scholarship','Competition','Other') DEFAULT 'Award',
+    issuing_body      VARCHAR(200),
+    achievement_date  DATE NOT NULL,
+    description       LONGTEXT,
+    level             ENUM('International','National','State','University','Faculty','Club') DEFAULT 'University',
+    position_rank     VARCHAR(100),
+    certificate_file  VARCHAR(255),
+    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_user_id        (user_id),
+    INDEX idx_achievement_date (achievement_date)
+);
+
 -- Insert sample admin user
 INSERT INTO users (username, email, password, full_name, role) 
 VALUES ('admin', 'admin@student-cms.local', 'password', 'Administrator', 'admin')
@@ -101,3 +120,17 @@ VALUES
 (4, 'Charity Food Bank Volunteer', 8, '2026-02-14', 'Assisted in packing and distributing food parcels to 100 local families.', 'pending'),
 (4, 'Academic Excellence Award', 10, '2026-01-05', 'Received a certificate of excellence for achieving the highest GPA in the technical track.', 'pending'),
 (4, 'Cultural Night Choreographer', 10, '2025-11-30', 'Choreographed a 10-minute performance for the International Student Cultural Night.', 'pending');
+
+-- Sample achievement records for student1 (user_id = 2)
+INSERT INTO achievements (user_id, achievement_title, achievement_type, issuing_body, achievement_date, description, level, position_rank)
+VALUES
+(2, 'Best Project Award - Hackathon 2025',      'Award',       'UTAR Faculty of ICT',       '2025-12-16', 'Awarded best project for an IoT smart campus solution built during the Winter Hackathon.',          'Faculty',        '1st Place'),
+(2, 'Dean''s List Certificate - Sem 1 2025/26', 'Certificate', 'UTAR Academic Office',      '2025-11-30', 'Achieved Dean''s List recognition for outstanding academic performance in Semester 1 2025/26.',   'University',     'Dean''s List'),
+(2, 'Web Dev Workshop Completion Certificate',  'Certificate', 'UTAR ICT Department',       '2025-11-22', 'Completed a 3-day intensive workshop on modern web development practices and frameworks.',         'Faculty',        'Participant'),
+(2, 'Annual Tech Conference Speaker Recognition','Recognition','UTAR Tech Society',          '2025-12-02', 'Recognised as a contributing speaker at the UTAR Annual Technology Conference.',                   'University',     'Speaker');
+
+-- Sample achievements for Jack2 (user_id = 3)
+INSERT INTO achievements (user_id, achievement_title, achievement_type, issuing_body, achievement_date, description, level, position_rank)
+VALUES
+(3, 'National Debate Championship - Semi-Finalist', 'Competition', 'Malaysian Debate Council', '2026-02-11', 'Reached the semi-finals of the National Debate Championship representing UTAR.',  'National',  'Semi-Finalist'),
+(3, 'IEEE Student Branch Excellence Award',          'Award',       'IEEE Malaysia Section',    '2026-03-05', 'Awarded for exceptional contributions to the UTAR IEEE Student Branch activities.', 'University','Best Secretary');

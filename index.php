@@ -3,12 +3,12 @@
 session_start();
 
 // 2. Access Control: If no session exists, send them back to login.php (bypass login comment this section out)
-/*
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
-*/
+
 
 // 3. Include the UI fragments
 include('includes/header.php'); 

@@ -36,21 +36,23 @@ require_once 'auth.php';
                 <h3 class="mb-4">Login to Your Account</h3>
                 
                 <form method="POST" action="login.php">
+                    <input type="hidden" name="action" value="login"> 
                     <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" name="username" required>
                     </div>
-                    
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                        <input type="password" class="form-control" name="password" required>
                     </div>
-                    
                     <button type="submit" class="btn btn-primary">Login</button>
                 </form>
 
                 <hr style="margin: 1.5rem 0;">
                 
+                <p class="text-center mb-3">
+                   <a href="register.php" class="text-primary font-weight-bold">Register here</a>
+                </p>
                 <p class="text-center text-muted mb-0">Demo Credentials:</p>
                 <p class="text-center" style="font-size: 0.9rem;">
                     <strong>Username:</strong> student1, admin<br>

@@ -16,7 +16,7 @@
         <a class="nav-link" href="#" onclick="alert('Coming Soon!'); return false;" style="opacity: 0.6;"><i class="fas fa-fw fa-users"></i><span>Club Tracker</span></a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="#" onclick="alert('Coming Soon!'); return false;" style="opacity: 0.6;"><i class="fas fa-fw fa-star"></i><span>Merit Tracker</span></a>
+        <a class="nav-link" href="/Student-Co-curricular-Management-System-main/modules/merit/merit_tracker.php"><i class="fas fa-fw fa-star"></i><span>Merit Tracker</span></a>
     </li>
     <li class="nav-item">
         <a class="nav-link" href="#" onclick="alert('Coming Soon!'); return false;" style="opacity: 0.6;"><i class="fas fa-fw fa-trophy"></i><span>Achievement Tracker</span></a>

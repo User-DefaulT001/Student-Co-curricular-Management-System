@@ -34,6 +34,20 @@ CREATE TABLE IF NOT EXISTS events (
     INDEX idx_event_date (event_date)
 );
 
+-- Create Clubs Table
+CREATE TABLE IF NOT EXISTS clubs (
+    club_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    club_name VARCHAR(150) NOT NULL,
+    role VARCHAR(100) NOT NULL,
+    join_date DATE NOT NULL,
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_user_club (user_id)
+);
+
 -- Insert sample admin user
 INSERT INTO users (username, email, password, full_name, role) 
 VALUES ('admin', 'admin@student-cms.local', '$2y$10$Oys7sDIfGKbxULr8MZzFV.bF95dBB8dMXg.FshXphc.1UaGBdl/5y', 'Administrator', 'admin')
@@ -50,3 +64,9 @@ VALUES
 (2, 'Winter Hackathon 2025', 'Competition', '2025-12-15', 'University Building A', 'Participated in a 24-hour hackathon event focused on IoT solutions', 24, 'Team Member', TRUE, 'completed'),
 (2, 'Web Development Workshop', 'Workshop', '2025-11-20', 'Computer Lab 3', 'Attended a 3-day workshop on modern web development practices', 8, 'Participant', TRUE, 'completed'),
 (2, 'Annual Tech Conference', 'Conference', '2025-12-01', 'Convention Center', 'Attended keynote sessions on AI and Machine Learning trends', 6, 'Attendee', TRUE, 'completed');
+
+-- Insert sample clubs
+INSERT INTO clubs (user_id, club_name, role, join_date, status) 
+VALUES 
+(2, 'Computer Science Society', 'Vice President', '2025-01-10', 'active'),
+(2, 'Photography Club', 'Member', '2025-03-15', 'active');

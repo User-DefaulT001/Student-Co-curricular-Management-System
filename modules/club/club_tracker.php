@@ -103,45 +103,37 @@ $active_clubs = mysqli_fetch_assoc($active_query)['count'];
             color: white;
         }
         .stats-icon { font-size: 2.5rem; opacity: 0.3; }
-        .table-action-btns { white-space: nowrap; }
+        /* 这里的 Topbar 我们保持留白，或者彻底隐藏 */
+        .topbar { height: 3.5rem !important; } 
     </style>
 </head>
 
 <body id="page-top">
 
     <div id="wrapper">
-
         <?php include('../../includes/sidebar.php'); ?>
 
         <div id="content-wrapper" class="d-flex flex-column">
-
             <div id="content">
 
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
-                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search records...">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button"><i class="fas fa-search fa-sm"></i></button>
-                            </div>
-                        </div>
-                    </form>
-                    <h5 class="mr-auto font-weight-bold text-primary d-none d-lg-block">Co-curricular Management System</h5>
-                </nav>
+                    </nav>
 
                 <div class="container-fluid">
 
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-2">
-                        <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-users mr-2"></i>Club Tracker</h1>
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+                            <i class="fas fa-users text-primary mr-2"></i>Club Tracker
+                        </h1>
                         <div>
-                            <button class="btn btn-primary btn-sm shadow-sm" data-toggle="modal" data-target="#addClubModal">
-                                <i class="fas fa-plus fa-sm text-white-50"></i> Add New Record
+                            <button class="btn btn-primary btn-sm shadow-sm px-3" data-toggle="modal" data-target="#addClubModal">
+                                <i class="fas fa-plus fa-sm text-white-50 mr-1"></i> Add New Record
                             </button>
-                            <button onclick="window.print()" class="btn btn-secondary btn-sm shadow-sm">
-                                <i class="fas fa-download fa-sm text-white-50"></i> Print Report
+                            <button onclick="window.print()" class="btn btn-light btn-sm shadow-sm border px-3 ml-2">
+                                <i class="fas fa-print fa-sm text-gray-600 mr-1"></i> Print Report
                             </button>
                         </div>
                     </div>
@@ -175,13 +167,6 @@ $active_clubs = mysqli_fetch_assoc($active_query)['count'];
                         </div>
                     </div>
 
-                    <?php if($success): ?>
-                        <div class="alert alert-success alert-dismissible fade show border-left-success shadow" role="alert">
-                            <i class="fas fa-check-circle mr-2"></i> <?php echo $success; ?>
-                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                        </div>
-                    <?php endif; ?>
-
                     <div class="card shadow mb-4">
                         <div class="card-header card-header-main py-3">
                             <h6 class="m-0 font-weight-bold text-white">Membership Record List</h6>
@@ -200,142 +185,13 @@ $active_clubs = mysqli_fetch_assoc($active_query)['count'];
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php
-                                        $clubs = mysqli_query($conn, "SELECT * FROM clubs WHERE user_id=$user_id ORDER BY join_date DESC");
-                                        if (mysqli_num_rows($clubs) > 0) {
-                                            while($row = mysqli_fetch_assoc($clubs)) {
-                                                $status_class = ($row['status'] == 'active') ? 'success' : 'secondary';
-                                                echo "<tr>
-                                                    <td><span class='font-weight-bold text-dark'>{$row['club_name']}</span></td>
-                                                    <td>{$row['role']}</td>
-                                                    <td><span class='badge badge-info px-2'>{$row['level']}</span></td>
-                                                    <td>".date('d M Y', strtotime($row['join_date']))."</td>
-                                                    <td><span class='badge badge-{$status_class} p-2 px-3'>".ucfirst($row['status'])."</span></td>
-                                                    <td class='text-center table-action-btns'>
-                                                        <button class='btn btn-circle btn-sm btn-info edit-btn' 
-                                                                data-id='{$row['club_id']}' 
-                                                                data-name='".htmlspecialchars($row['club_name'])."' 
-                                                                data-role='".htmlspecialchars($row['role'])."' 
-                                                                data-level='{$row['level']}' 
-                                                                data-date='{$row['join_date']}' 
-                                                                data-status='{$row['status']}' 
-                                                                data-desc='".htmlspecialchars($row['description'])."' 
-                                                                data-toggle='modal' data-target='#editClubModal'>
-                                                            <i class='fas fa-edit'></i>
-                                                        </button>
-                                                        <a href='?delete={$row['club_id']}' class='btn btn-circle btn-sm btn-danger' onclick='return confirm(\"Confirm delete record?\")'>
-                                                            <i class='fas fa-trash'></i>
-                                                        </a>
-                                                    </td>
-                                                </tr>";
-                                            }
-                                        }
-                                        ?>
-                                    </tbody>
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
 
                 </div> </div> <?php include('../../includes/footer.php'); ?>
-
-        </div> </div> <div class="modal fade" id="addClubModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content shadow-lg">
-                <form method="POST">
-                    <input type="hidden" name="action" value="add">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title font-weight-bold">Register New Membership</h5>
-                        <button class="close text-white" data-dismiss="modal"><span>&times;</span></button>
-                    </div>
-                    <div class="modal-body p-4">
-                        <div class="row">
-                            <div class="col-md-6 form-group">
-                                <label class="font-weight-bold">Club Name</label>
-                                <input type="text" name="club_name" class="form-control" placeholder="e.g. Robotics Club" required>
-                            </div>
-                            <div class="col-md-6 form-group">
-                                <label class="font-weight-bold">Role / Position</label>
-                                <input type="text" name="role" class="form-control" placeholder="e.g. President" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 form-group">
-                                <label class="font-weight-bold">Level</label>
-                                <select name="level" class="form-control">
-                                    <option value="School">School</option>
-                                    <option value="District">District</option>
-                                    <option value="State">State</option>
-                                    <option value="National">National</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 form-group">
-                                <label class="font-weight-bold">Date Joined</label>
-                                <input type="date" name="join_date" class="form-control" required>
-                            </div>
-                            <div class="col-md-4 form-group">
-                                <label class="font-weight-bold">Membership Status</label>
-                                <select name="status" class="form-control">
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="font-weight-bold">Responsibilities / Description</label>
-                            <textarea name="description" class="form-control" rows="3" placeholder="Briefly describe your duties..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard</button>
-                        <button type="submit" class="btn btn-primary px-4">Save Record</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="editClubModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content shadow-lg">
-                <form method="POST" id="editForm">
-                    <input type="hidden" name="action" value="edit">
-                    <input type="hidden" name="club_id" id="edit_id">
-                    <div class="modal-header bg-info text-white">
-                        <h5 class="modal-title font-weight-bold">Edit Membership Record</h5>
-                        <button class="close text-white" data-dismiss="modal"><span>&times;</span></button>
-                    </div>
-                    <div class="modal-body p-4">
-                        <div class="row">
-                            <div class="col-md-6 form-group"><label class="font-weight-bold">Club Name</label>
-                                <input type="text" name="club_name" id="edit_name" class="form-control" required></div>
-                            <div class="col-md-6 form-group"><label class="font-weight-bold">Role</label>
-                                <input type="text" name="role" id="edit_role" class="form-control" required></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 form-group"><label class="font-weight-bold">Level</label>
-                                <select name="level" id="edit_level" class="form-control">
-                                    <option value="School">School</option>
-                                    <option value="District">District</option>
-                                    <option value="State">State</option>
-                                    <option value="National">National</option>
-                                </select></div>
-                            <div class="col-md-4 form-group"><label class="font-weight-bold">Date Joined</label>
-                                <input type="date" name="join_date" id="edit_date" class="form-control" required></div>
-                            <div class="col-md-4 form-group"><label class="font-weight-bold">Status</label>
-                                <select name="status" id="edit_status" class="form-control">
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select></div>
-                        </div>
-                        <div class="form-group"><label class="font-weight-bold">Description</label>
-                            <textarea name="description" id="edit_desc" class="form-control" rows="3"></textarea></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-info px-4">Update Changes</button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
 

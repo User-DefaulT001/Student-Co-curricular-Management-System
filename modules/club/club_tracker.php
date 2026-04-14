@@ -75,7 +75,6 @@ if (isset($_GET['delete'])) {
     }
 }
 
-// --- PREPARE DATA FOR UI ---
 $total_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM clubs WHERE user_id=$user_id");
 $total_clubs = mysqli_fetch_assoc($total_query)['count'];
 
@@ -124,21 +123,18 @@ $active_clubs = mysqli_fetch_assoc($active_query)['count'];
                     </button>
                 
                     <nav aria-label="breadcrumb" class="d-none d-sm-inline-block mr-auto ml-md-3 my-2">
-                        <ol class="breadcrumb bg-transparent mb-0 p-0" style="font-size: 0.85rem; letter-spacing: 0.5px;">
-                            <li class="breadcrumb-item">
-                                <a href="../../index.php" class="text-gray-500 text-decoration-none">HOME</a>
-                            </li>
-                            <li class="breadcrumb-item active text-primary font-weight-bold" aria-current="page">
-                                CLUB TRACKER
-                            </li>
+                        <ol class="breadcrumb bg-transparent mb-0 p-0" style="font-size: 0.9rem;">
+                            <li class="breadcrumb-item"><a href="../../index.php" class="text-gray-600">Home</a></li>
+                            <li class="breadcrumb-item active text-primary font-weight-bold" aria-current="page">Club Tracker</li>
                         </ol>
                     </nav>
                 
                     <ul class="navbar-nav ml-auto">
+                        <div class="topbar-divider d-none d-sm-block"></div>
                         <li class="nav-item">
                             <span class="nav-link text-gray-600 small">
                                 <i class="fas fa-user-circle fa-fw mr-2 text-gray-400"></i>
-                                <?php echo ucfirst($role); ?>
+                                <?php echo $_SESSION['role'] ?? 'Student'; ?>
                             </span>
                         </li>
                     </ul>
@@ -376,3 +372,5 @@ $active_clubs = mysqli_fetch_assoc($active_query)['count'];
     </script>
 </body>
 </html>
+
+这个是我原来的code，topbar部分这么改呀？

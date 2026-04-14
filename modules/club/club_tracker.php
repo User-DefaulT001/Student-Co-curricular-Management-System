@@ -32,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status      = mysqli_real_escape_string($conn, $_POST['status']);
         $description = mysqli_real_escape_string($conn, $_POST['description']);
 
-        $query = "INSERT INTO clubs (user_id, club_name, role, level, join_date, status, description) 
-                  VALUES ('$user_id', '$club_name', '$role_held', '$level', '$join_date', '$status', '$description')";
-        
+        $query = "INSERT INTO clubs (user_id, club_name, role, level, join_date, status, description, created_at)  
+          VALUES ('$user_id', '$club_name', '$role_held', '$level', '$join_date', '$status', '$description', NOW())";
+
         if (mysqli_query($conn, $query)) {
             $_SESSION['success_message'] = "Club membership record added successfully!";
             header("Location: club_tracker.php"); exit();

@@ -86,8 +86,9 @@ $active_clubs = mysqli_fetch_assoc($active_query)['count'];
     <style>
         .card-header-main { background: #4e73df !important; color: white; }
         .stats-icon { font-size: 2.5rem; opacity: 0.3; }
-        .btn-circle { width: 30px; height: 30px; padding: 6px 0px; border-radius: 15px; text-align: center; font-size: 12px; line-height: 1.42857; }
-    </style>
+        .btn-circle { width: 30px; height: 30px; padding: 6px 0px; border-radius: 15px; text-align: center; font-size: 12px; }
+        .dataTables_length select { margin: 0 5px; height: auto !important; padding: 2px 5px !important; display: inline-block !important; }
+        .dataTables_length { display: flex; align-items: center; }    </style>
 </head>
 <body id="page-top">
     <div id="wrapper">
@@ -101,7 +102,6 @@ $active_clubs = mysqli_fetch_assoc($active_query)['count'];
                             <?php if($role === 'student'): ?>
                             <button class="btn btn-primary btn-sm shadow-sm" data-toggle="modal" data-target="#addClubModal"><i class="fas fa-plus fa-sm text-white-50"></i> Add New Record</button>
                             <?php endif; ?>
-                            <button onclick="window.print()" class="btn btn-secondary btn-sm shadow-sm"><i class="fas fa-download fa-sm text-white-50"></i> Print Report</button>
                         </div>
                     </div>
                     <div class="row">

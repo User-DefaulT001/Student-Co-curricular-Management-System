@@ -17,7 +17,6 @@ require_once 'auth.php';
             <div class="login-card-header">
                 <h1><i class="fas fa-graduation-cap"></i></h1>
                 <h1>Student CMS</h1>
-                <p>Event Tracker Module</p>
             </div>
             
             <div class="login-card-body">

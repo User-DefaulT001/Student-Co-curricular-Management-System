@@ -85,10 +85,19 @@ $active_clubs = mysqli_fetch_assoc($active_query)['count'];
     <link href="../../assets/style.css" rel="stylesheet">
     <style>
         .card-header-main { background: #4e73df !important; color: white; }
-        .stats-icon { font-size: 2.5rem; opacity: 0.3; }
-        .btn-circle { width: 30px; height: 30px; padding: 6px 0px; border-radius: 15px; text-align: center; font-size: 12px; line-height: 1.42857; }        .dataTables_length select { margin: 0 5px; height: auto !important; padding: 2px 5px !important; display: inline-block !important; }
-        .dataTables_length select { margin: 0 5px; height: auto !important; padding: 2px 5px !important; display: inline-block !important; }
-        .dataTables_length { display: flex; align-items: center; }
+    .stats-icon { font-size: 2.5rem; opacity: 0.3; }
+    .btn-circle { width: 30px; height: 30px; padding: 6px 0px; border-radius: 15px; text-align: center; font-size: 12px; line-height: 1.42857; }
+    
+    .dataTables_length select { 
+        margin: 0 5px; 
+        height: auto !important; 
+        padding: 2px 25px 2px 8px !important;
+        display: inline-block !important; 
+        min-width: 60px !important;
+        appearance: auto !important;
+    }
+    
+    .dataTables_length { display: flex; align-items: center; }
     </style>
 </head>
 <body id="page-top">

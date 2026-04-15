@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = (int) $_SESSION['user_id'];
-$role    = $_SESSION['role'] ?? 'student';
+$role = $_SESSION['role'] ?? 'student';
 
 // --- FLASH MESSAGES ---
 $success = '';

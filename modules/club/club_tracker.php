@@ -4,8 +4,8 @@ require_once '../../config.php';
 
 // --- AUTHENTICATION CHECK ---
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../login.php");
-    exit();
+    header("Location: ../../login.php");
+    exit();
 }
 
 $user_id = (int) $_SESSION['user_id'];

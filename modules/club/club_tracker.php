@@ -15,8 +15,8 @@ $role = $_SESSION['role'] ?? 'student';
 $success = '';
 $error = '';
 
-if (isset($_SESSION['success_message'])) { $success = $_SESSION['success_message']; unset($_SESSION['success_message']); }
-if (isset($_SESSION['error_message']))   { $error   = $_SESSION['error_message'];   unset($_SESSION['error_message']);   }
+if (isset($_SESSION['success_message'])) { $success = $_SESSION['success_message']; unset($_SESSION['success_message']);}
+if (isset($_SESSION['error_message'])) { $error   = $_SESSION['error_message'];   unset($_SESSION['error_message']);}
 
 // --- DATABASE LOGIC: POST ACTIONS ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,10 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Action: ADD NEW CLUB (Usually only students add their own)
     if ($action === 'add') {
-        $club_name   = mysqli_real_escape_string($conn, $_POST['club_name']);
-        $role_held   = mysqli_real_escape_string($conn, $_POST['role']);
-        $join_date   = mysqli_real_escape_string($conn, $_POST['join_date']);
-        $status      = mysqli_real_escape_string($conn, $_POST['status']);
+        $club_name = mysqli_real_escape_string($conn, $_POST['club_name']);
+        $role_held = mysqli_real_escape_string($conn, $_POST['role']);
+        $join_date = mysqli_real_escape_string($conn, $_POST['join_date']);
+        $status = mysqli_real_escape_string($conn, $_POST['status']);
 
         $query = "INSERT INTO clubs (user_id, club_name, role, join_date, status, created_at)  
                   VALUES ('$user_id', '$club_name', '$role_held', '$join_date', '$status', NOW())";
@@ -40,11 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Action: UPDATE EXISTING CLUB
     if ($action === 'edit') {
-        $club_id     = (int)$_POST['club_id'];
-        $club_name   = mysqli_real_escape_string($conn, $_POST['club_name']);
-        $role_held   = mysqli_real_escape_string($conn, $_POST['role']);
-        $join_date   = mysqli_real_escape_string($conn, $_POST['join_date']);
-        $status      = mysqli_real_escape_string($conn, $_POST['status']);
+        $club_id = (int)$_POST['club_id'];
+        $club_name = mysqli_real_escape_string($conn, $_POST['club_name']);
+        $role_held = mysqli_real_escape_string($conn, $_POST['role']);
+        $join_date = mysqli_real_escape_string($conn, $_POST['join_date']);
+        $status = mysqli_real_escape_string($conn, $_POST['status']);
 
         // FIX: If admin, ignore user_id check. If student, ensure they own the record.
         if ($role === 'admin') {

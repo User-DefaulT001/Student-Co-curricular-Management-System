@@ -98,11 +98,6 @@ INSERT INTO users (username, email, password, full_name, role)
 VALUES ('Jack2', 'Jack2@student-cms.local', 'password', 'Jack Smith', 'student')
 ON DUPLICATE KEY UPDATE username=VALUES(username);
 
--- Insert sample student user (password: password)
-INSERT INTO users (username, email, password, full_name, role) 
-VALUES ('Adam3', 'Adam3@student-cms.local', 'password', 'Adam Johnson', 'student')
-ON DUPLICATE KEY UPDATE username=VALUES(username);
-
 -- Insert sample events
 INSERT INTO events (user_id, event_name, event_type, event_date, location, description, hours_participated, role_held, certificate_obtained, status) 
 VALUES 
@@ -110,37 +105,42 @@ VALUES
 (2, 'Web Development Workshop', 'Workshop', '2025-11-20', 'Computer Lab 3', 'Attended a 3-day workshop on modern web development practices', 8, 'Participant', TRUE, 'completed'),
 (2, 'Annual Tech Conference', 'Conference', '2025-12-01', 'Convention Center', 'Attended keynote sessions on AI and Machine Learning trends', 6, 'Attendee', TRUE, 'completed');
 
+-- Insert sample events
+INSERT INTO events (user_id, event_name, event_type, event_date, location, description, hours_participated, role_held, certificate_obtained, status) 
+VALUES 
+(3, 'AI Ethics Debate Night', 'Discussion', '2025-03-22', 'Innovation Hub', 'Participated in a panel discussion regarding the societal impact of LLMs', 3, 'Team Member', TRUE, 'completed'),
+(3, 'Spring Startup Pitch', 'Competition', '2025-04-12', 'Business School', 'Presented a business model for a sustainable tech startup to investors', 15, 'Team Lead', TRUE, 'pending'),
+(3, 'Data Science Bootcamp', 'Workshop', '2025-05-20', 'Science Park', 'Intensive hands-on training for Python data analysis and visualization', 16, 'Participant', TRUE, 'completed');
+
 -- Insert sample clubs
-INSERT INTO clubs (user_id, club_name, role, join_date, status) 
+INSERT INTO clubs (user_id, club_name, role, join_date, status)
 VALUES 
 (2, 'Computer Science Society', 'Vice President', '2025-01-10', 'active'),
 (2, 'Photography Club', 'Member', '2025-03-15', 'active');
 
--- User 1 is ADMIN, sample merits for User 2
+-- Insert sample clubs
+INSERT INTO clubs (user_id, club_name, role, join_date, status) 
+VALUES 
+(3, 'Blockchain Club', 'President', '2025-10-10', 'active'),
+(3, 'Robotics Club', 'Member', '2025-11-5', 'active');
+
+-- Sample merits for student1 
 INSERT INTO merits (user_id, activity_name, merit_points, date_earned, description, status) 
 VALUES 
-(2, 'Community Garden Setup', 10, '2026-03-20', 'Assisted in building 5 raised beds for the local community center garden.', 'pending'),
-(2, 'Peer Mentor Session', 3, '2026-04-05', 'Conducted a 1-hour mentoring session for freshman students in Web Dev.', 'approved'),
-(2, 'Dean List Peer Mentoring', 10, '2026-03-15', 'Provided 5 hours of intensive coding tutorials for first-year students struggling with PHP logic.', 'rejected'),
-(2, 'Student Council Election Committee', 15, '2026-04-02', 'Assisted in the physical setup and ballot counting for the 2026 Campus Election Day.', 'approved');
+(2, 'Community Garden Setup', 10, '2025-03-20', 'Assisted in building 5 raised beds for the local community center garden.', 'pending'),
+(2, 'Peer Mentor Session', 3, '2025-04-05', 'Conducted a 1-hour mentoring session for freshman students in Web Dev.', 'approved'),
+(2, 'Dean List Peer Mentoring', 10, '2025-03-15', 'Provided 5 hours of intensive coding tutorials for first-year students struggling with PHP logic.', 'rejected'),
+(2, 'Student Council Election Committee', 15, '2025-04-02', 'Assisted in the physical setup and ballot counting for the 2025 Campus Election Day.', 'approved');
 
--- sample merits for User 3
+-- sample merits for Jack2
 INSERT INTO merits (user_id, activity_name, merit_points, date_earned, description, status) 
 VALUES 
-(3, 'Inter-University Debate Competition', 15, '2026-02-10', 'Represented the university in the national debate championship reaching the semi-finals.', 'pending'),
-(3, 'IEEE Student Branch Secretary', 20, '2026-03-01', 'Managed administrative duties and documentation for the IEEE student branch for the semester.', 'pending'),
-(3, 'Basketball Team Captain', 10, '2026-01-20', 'Led the faculty basketball team during the Annual Sports Carnival.', 'pending'),
-(3, 'Environmental Awareness Talk', 5, '2026-04-02', 'Organized and hosted a virtual talk on sustainable living for 50+ participants.', 'pending');
+(3, 'Inter-University Debate Competition', 15, '2025-02-10', 'Represented the university in the national debate championship reaching the semi-finals.', 'pending'),
+(3, 'IEEE Student Branch Secretary', 20, '2025-03-01', 'Managed administrative duties and documentation for the IEEE student branch for the semester.', 'pending'),
+(3, 'Basketball Team Captain', 10, '2025-01-20', 'Led the faculty basketball team during the Annual Sports Carnival.', 'pending'),
+(3, 'Environmental Awareness Talk', 5, '2025-04-02', 'Organized and hosted a virtual talk on sustainable living for 50+ participants.', 'pending');
 
--- sample merits for User 4
-INSERT INTO merits (user_id, activity_name, merit_points, date_earned, description, status) 
-VALUES 
-(4, 'Open Source Project Contributor', 12, '2026-03-25', 'Contributed 5 significant bug fixes and documentation updates to a community web framework.', 'pending'),
-(4, 'Charity Food Bank Volunteer', 8, '2026-02-14', 'Assisted in packing and distributing food parcels to 100 local families.', 'pending'),
-(4, 'Academic Excellence Award', 10, '2026-01-05', 'Received a certificate of excellence for achieving the highest GPA in the technical track.', 'pending'),
-(4, 'Cultural Night Choreographer', 10, '2025-11-30', 'Choreographed a 10-minute performance for the International Student Cultural Night.', 'pending');
-
--- Sample achievement records for student1 (user_id = 2)
+-- Sample achievement records for student1
 INSERT INTO achievements (user_id, achievement_title, achievement_type, issuing_body, achievement_date, description, level, position_rank)
 VALUES
 (2, 'Best Project Award - Hackathon 2025',      'Award',       'UTAR Faculty of ICT',       '2025-12-16', 'Awarded best project for an IoT smart campus solution built during the Winter Hackathon.',          'Faculty',        '1st Place'),
@@ -148,7 +148,7 @@ VALUES
 (2, 'Web Dev Workshop Completion Certificate',  'Certificate', 'UTAR ICT Department',       '2025-11-22', 'Completed a 3-day intensive workshop on modern web development practices and frameworks.',         'Faculty',        'Participant'),
 (2, 'Annual Tech Conference Speaker Recognition','Recognition','UTAR Tech Society',          '2025-12-02', 'Recognised as a contributing speaker at the UTAR Annual Technology Conference.',                   'University',     'Speaker');
 
--- Sample achievements for Jack2 (user_id = 3)
+-- Sample achievements for Jack2
 INSERT INTO achievements (user_id, achievement_title, achievement_type, issuing_body, achievement_date, description, level, position_rank)
 VALUES
 (3, 'National Debate Championship - Semi-Finalist', 'Competition', 'Malaysian Debate Council', '2026-02-11', 'Reached the semi-finals of the National Debate Championship representing UTAR.',  'National',  'Semi-Finalist'),

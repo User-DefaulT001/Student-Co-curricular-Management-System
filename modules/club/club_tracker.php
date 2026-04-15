@@ -1,177 +1,261 @@
 <?php
-
 session_start();
+require_once '../../config.php';
 
-// Ensure user is logged in
+// --- AUTHENTICATION CHECK ---
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: ../../login.php");
     exit();
 }
 
-// Database Connection
-$conn = mysqli_connect("localhost", "root", "", "student_cms");
+$user_id = (int) $_SESSION['user_id'];
+$role    = $_SESSION['role'] ?? 'student';
 
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+// --- FLASH MESSAGES ---
+$success = '';
+$error   = '';
 
-$user_id = $_SESSION['user_id'];
-$message = "";
+if (isset($_SESSION['success_message'])) { $success = $_SESSION['success_message']; unset($_SESSION['success_message']); }
+if (isset($_SESSION['error_message']))   { $error   = $_SESSION['error_message'];   unset($_SESSION['error_message']);   }
 
-// CREATE (Add Record)
-if (isset($_POST['add'])) {
-    $c_name   = mysqli_real_escape_string($conn, $_POST['club_name']);
-    $c_role   = mysqli_real_escape_string($conn, $_POST['role']);
-    $c_date   = mysqli_real_escape_string($conn, $_POST['join_date']);
-    $c_status = mysqli_real_escape_string($conn, $_POST['status']);
+// --- DATABASE LOGIC: POST ACTIONS ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
 
-    $sql = "INSERT INTO clubs (user_id, club_name, role, join_date, status) 
-            VALUES ('$user_id', '$c_name', '$c_role', '$c_date', '$c_status')";
-    
-    if (mysqli_query($conn, $sql)) {
-        $message = "Record added successfully!";
-    } else {
-        $message = "Error: " . mysqli_error($conn);
+    // Action: ADD NEW CLUB (Usually only students add their own)
+    if ($action === 'add') {
+        $club_name   = mysqli_real_escape_string($conn, $_POST['club_name']);
+        $role_held   = mysqli_real_escape_string($conn, $_POST['role']);
+        $join_date   = mysqli_real_escape_string($conn, $_POST['join_date']);
+        $status      = mysqli_real_escape_string($conn, $_POST['status']);
+
+        $query = "INSERT INTO clubs (user_id, club_name, role, join_date, status, created_at)  
+                  VALUES ('$user_id', '$club_name', '$role_held', '$join_date', '$status', NOW())";
+
+        if (mysqli_query($conn, $query)) {
+            $_SESSION['success_message'] = "Club membership record added successfully!";
+            header("Location: club_tracker.php"); exit();
+        }
+    }
+
+    // Action: UPDATE EXISTING CLUB
+    if ($action === 'edit') {
+        $club_id     = (int)$_POST['club_id'];
+        $club_name   = mysqli_real_escape_string($conn, $_POST['club_name']);
+        $role_held   = mysqli_real_escape_string($conn, $_POST['role']);
+        $join_date   = mysqli_real_escape_string($conn, $_POST['join_date']);
+        $status      = mysqli_real_escape_string($conn, $_POST['status']);
+
+        // FIX: If admin, ignore user_id check. If student, ensure they own the record.
+        if ($role === 'admin') {
+            $query = "UPDATE clubs SET 
+                      club_name='$club_name', role='$role_held',
+                      join_date='$join_date', status='$status'
+                      WHERE club_id=$club_id";
+        } else {
+            $query = "UPDATE clubs SET 
+                      club_name='$club_name', role='$role_held',
+                      join_date='$join_date', status='$status'
+                      WHERE club_id=$club_id AND user_id=$user_id";
+        }
+        
+        if (mysqli_query($conn, $query)) {
+            $_SESSION['success_message'] = "Club record updated successfully!";
+            header("Location: club_tracker.php"); exit();
+        }
     }
 }
 
-// DELETE
+// Action: DELETE (GET Request)
 if (isset($_GET['delete'])) {
-    $id = intval($_GET['delete']);
-    // Ensure the record belongs to the current user
-    $sql = "DELETE FROM clubs WHERE club_id = $id AND user_id = $user_id";
-    if (mysqli_query($conn, $sql)) {
-        header("Location: club-tracker.php?msg=deleted");
-        exit();
-    }
-}
-
-// UPDATE
-if (isset($_POST['update'])) {
-    $id       = intval($_POST['club_id']);
-    $c_name   = mysqli_real_escape_string($conn, $_POST['club_name']);
-    $c_role   = mysqli_real_escape_string($conn, $_POST['role']);
-    $c_date   = mysqli_real_escape_string($conn, $_POST['join_date']);
-    $c_status = mysqli_real_escape_string($conn, $_POST['status']);
-
-    $sql = "UPDATE clubs SET club_name='$c_name', role='$c_role', join_date='$c_date', status='$c_status' 
-            WHERE club_id=$id AND user_id=$user_id";
+    $del_id = (int)$_GET['delete'];
     
-    if (mysqli_query($conn, $sql)) {
-        header("Location: club-tracker.php?msg=updated");
-        exit();
+    // FIX: If admin, delete any. If student, delete only own.
+    if ($role === 'admin') {
+        $del_query = "DELETE FROM clubs WHERE club_id=$del_id";
+    } else {
+        $del_query = "DELETE FROM clubs WHERE club_id=$del_id AND user_id=$user_id";
+    }
+
+    if (mysqli_query($conn, $del_query)) {
+        $_SESSION['success_message'] = "Record has been deleted.";
+        header("Location: club_tracker.php"); exit();
     }
 }
 
-// FETCH DATA FOR EDITING
-$edit_data = null;
-if (isset($_GET['edit'])) {
-    $id = intval($_GET['edit']);
-    $res = mysqli_query($conn, "SELECT * FROM clubs WHERE club_id=$id AND user_id=$user_id");
-    $edit_data = mysqli_fetch_assoc($res);
+// --- PREPARE DATA FOR UI ---
+// FIX: Logic to handle Admin vs Student view for stats
+if ($role === 'admin') {
+    $total_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM clubs");
+    $active_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM clubs WHERE status='active'");
+} else {
+    $total_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM clubs WHERE user_id=$user_id");
+    $active_query = mysqli_query($conn, "SELECT COUNT(*) as count FROM clubs WHERE user_id=$user_id AND status='active'");
 }
+
+$total_clubs = mysqli_fetch_assoc($total_query)['count'];
+$active_clubs = mysqli_fetch_assoc($active_query)['count'];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Club Tracker | Student CMS</title>
+    <meta charset="utf-8">
+    <title>Club Tracker - Student CMS</title>
+    <link href="../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="../../assets/style.css" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; background-color: #f4f7f6; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { border-bottom: 2px solid #007bff; padding-bottom: 10px; color: #333; }
-        .form-box { background: #fafafa; padding: 20px; border: 1px solid #eee; margin-bottom: 30px; }
-        input, select { padding: 8px; margin: 10px 0; width: 100%; box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #007bff; color: white; }
-        .btn-submit { background-color: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
-        .action-links a { text-decoration: none; margin-right: 10px; font-weight: bold; }
-        .delete-btn { color: #dc3545; }
-        .edit-btn { color: #007bff; }
+        .card-header-main { background: var(--primary-gradient) !important; color: white; }
+        .stats-icon { font-size: 2.5rem; opacity: 0.3; }
     </style>
 </head>
-<body>
 
-<div class="container">
-    <h2>Club Tracker Module</h2>
-    <p><a href="dashboard.php">← Back to Dashboard</a></p>
+<body id="page-top">
+    <div id="wrapper">
+        <?php include('../../includes/sidebar.php'); ?>
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-2">
+                        <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-users mr-2"></i>Club Tracker</h1>
+                        <div>
+                            <?php if($role === 'student'): ?>
+                            <button class="btn btn-primary btn-sm shadow-sm" data-toggle="modal" data-target="#addClubModal">
+                                <i class="fas fa-plus fa-sm text-white-50"></i> Add New Record
+                            </button>
+                            <?php endif; ?>
+                            <button onclick="window.print()" class="btn btn-secondary btn-sm shadow-sm">
+                                <i class="fas fa-download fa-sm text-white-50"></i> Print Report
+                            </button>
+                        </div>
+                    </div>
 
-    <?php 
-        if ($message) echo "<p style='color:green;'>$message</p>"; 
-        if (isset($_GET['msg'])) echo "<p style='color:green;'>Action successful!</p>";
-    ?>
+                    <div class="row">
+                        <div class="col-xl-6 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                <?php echo ($role === 'admin') ? "Global Club Records" : "Total Clubs Joined"; ?>
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $total_clubs; ?> Records</div>
+                                        </div>
+                                        <div class="col-auto"><i class="fas fa-university stats-icon text-primary"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-6 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Memberships</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $active_clubs; ?> Active</div>
+                                        </div>
+                                        <div class="col-auto"><i class="fas fa-id-badge stats-icon text-success"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-    <div class="form-box">
-        <h3><?php echo $edit_data ? "Edit Club Entry" : "Add New Membership"; ?></h3>
-        <form method="POST">
-            <?php if ($edit_data): ?>
-                <input type="hidden" name="club_id" value="<?php echo $edit_data['club_id']; ?>">
-            <?php endif; ?>
+                    <?php if($success): ?>
+                        <div class="alert alert-success alert-dismissible fade show shadow" role="alert">
+                            <i class="fas fa-check-circle mr-2"></i> <?php echo $success; ?>
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        </div>
+                    <?php endif; ?>
 
-            <label>Club Name:</label>
-            <input type="text" name="club_name" value="<?php echo htmlspecialchars($edit_data['club_name'] ?? ''); ?>" required>
+                    <div class="card shadow mb-4">
+                        <div class="card-header card-header-main py-3">
+                            <h6 class="m-0 font-weight-bold text-white">
+                                <?php echo ($role === 'admin') ? "All Student Memberships" : "My Membership Record List"; ?>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="clubTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <?php if($role === 'admin'): ?><th>Student</th><?php endif; ?>
+                                            <th>Club Name</th>
+                                            <th>Role</th>
+                                            <th>Join Date</th>
+                                            <th>Status</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        // FIX: If admin, Join with users table to get the username
+                                        if ($role === 'admin') {
+                                            $query = "SELECT c.*, u.username FROM clubs c 
+                                                      JOIN users u ON c.user_id = u.user_id 
+                                                      ORDER BY c.join_date DESC";
+                                        } else {
+                                            $query = "SELECT * FROM clubs WHERE user_id=$user_id ORDER BY join_date DESC";
+                                        }
 
-            <label>Role / Position:</label>
-            <input type="text" name="role" value="<?php echo htmlspecialchars($edit_data['role'] ?? ''); ?>" placeholder="e.g. Committee Member" required>
-
-            <label>Join Date:</label>
-            <input type="date" name="join_date" value="<?php echo $edit_data['join_date'] ?? ''; ?>" required>
-
-            <label>Status:</label>
-            <select name="status">
-                <option value="active" <?php echo (isset($edit_data['status']) && $edit_data['status'] == 'active') ? 'selected' : ''; ?>>Active</option>
-                <option value="inactive" <?php echo (isset($edit_data['status']) && $edit_data['status'] == 'inactive') ? 'selected' : ''; ?>>Inactive</option>
-            </select>
-
-            <button type="submit" name="<?php echo $edit_data ? 'update' : 'add'; ?>" class="btn-submit">
-                <?php echo $edit_data ? "Update Record" : "Save Record"; ?>
-            </button>
-            <?php if ($edit_data): ?> 
-                <a href="club-tracker.php" style="margin-left: 10px; color: #666;">Cancel</a> 
-            <?php endif; ?>
-        </form>
+                                        $clubs = mysqli_query($conn, $query);
+                                        while($row = mysqli_fetch_assoc($clubs)) {
+                                            $status_class = ($row['status'] == 'active') ? 'success' : 'secondary';
+                                            echo "<tr>";
+                                                if($role === 'admin') {
+                                                    echo "<td><span class='badge badge-dark'>".htmlspecialchars($row['username'])."</span></td>";
+                                                }
+                                                echo "<td><span class='font-weight-bold text-dark'>{$row['club_name']}</span></td>
+                                                <td>{$row['role']}</td>
+                                                <td>".date('d M Y', strtotime($row['join_date']))."</td>
+                                                <td><span class='badge badge-{$status_class} p-2 px-3'>".ucfirst($row['status'])."</span></td>
+                                                <td class='text-center'>
+                                                    <button class='btn btn-circle btn-sm btn-info edit-btn' 
+                                                            data-id='{$row['club_id']}' 
+                                                            data-name='".htmlspecialchars($row['club_name'])."' 
+                                                            data-role='".htmlspecialchars($row['role'])."' 
+                                                            data-date='{$row['join_date']}' 
+                                                            data-status='{$row['status']}' 
+                                                            data-toggle='modal' data-target='#editClubModal'>
+                                                        <i class='fas fa-edit'></i>
+                                                    </button>
+                                                    <a href='?delete={$row['club_id']}' class='btn btn-circle btn-sm btn-danger' onclick='return confirm(\"Confirm delete?\")'>
+                                                        <i class='fas fa-trash'></i>
+                                                    </a>
+                                                </td>
+                                            </tr>";
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+            </div> 
+            <?php include('../../includes/footer.php'); ?>
+        </div> 
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Club Name</th>
-                <th>Role</th>
-                <th>Joined Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            // Read: Display only records belonging to the current user
-            $query = "SELECT * FROM clubs WHERE user_id = '$user_id' ORDER BY join_date DESC";
-            $result = mysqli_query($conn, $query);
+    <script src="../../vendor/jquery/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="../../vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
-            if (mysqli_num_rows($result) > 0) {
-                while ($row = mysqli_fetch_assoc($result)) {
-                    echo "<tr>
-                            <td>" . htmlspecialchars($row['club_name']) . "</td>
-                            <td>" . htmlspecialchars($row['role']) . "</td>
-                            <td>" . $row['join_date'] . "</td>
-                            <td>" . ucfirst($row['status']) . "</td>
-                            <td class='action-links'>
-                                <a href='club-tracker.php?edit={$row['club_id']}' class='edit-btn'>Edit</a>
-                                <a href='club-tracker.php?delete={$row['club_id']}' 
-                                   class='delete-btn' 
-                                   onclick='return confirm(\"Are you sure you want to delete this record?\")'>Delete</a>
-                            </td>
-                          </tr>";
-                }
-            } else {
-                echo "<tr><td colspan='5'>No records found.</td></tr>";
-            }
-            ?>
-        </tbody>
-    </table>
-</div>
-
+    <script>
+        $(document).ready(function() {
+            $('#clubTable').DataTable();
+            $('.edit-btn').on('click', function() {
+                $('#edit_id').val($(this).data('id'));
+                $('#edit_name').val($(this).data('name'));
+                $('#edit_role').val($(this).data('role'));
+                $('#edit_date').val($(this).data('date'));
+                $('#edit_status').val($(this).data('status'));
+            });
+        });
+    </script>
 </body>
 </html>

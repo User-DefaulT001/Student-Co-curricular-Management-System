@@ -14,6 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$role    = $_SESSION['role'];
 $error_message = '';
 $success_message = '';
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
@@ -137,37 +138,56 @@ $offset = ($current_page - 1) * $events_per_page;
 $total_events = 0;
 $total_hours = 0;
 $completed_events = 0;
-$stmt = $conn->prepare(
-    "SELECT COUNT(*) AS total_events, 
-            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events, 
-            COALESCE(SUM(hours_participated), 0) AS total_hours 
-     FROM events WHERE user_id = ?"
-);
-if ($stmt) {
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $stats_result = $stmt->get_result();
-    if ($stats_result && $row = $stats_result->fetch_assoc()) {
-        $total_events = intval($row['total_events']);
-        $completed_events = intval($row['completed_events']);
-        $total_hours = floatval($row['total_hours']);
-    }
-    $stmt->close();
+
+if ($role === 'admin') {
+    $stats_query = "SELECT COUNT(*) AS total_events, 
+                           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events, 
+                           COALESCE(SUM(hours_participated), 0) AS total_hours 
+                    FROM events";
+    $stats_result = $conn->query($stats_query);
+} else {
+    $stats_stmt = $conn->prepare(
+        "SELECT COUNT(*) AS total_events, 
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events, 
+                COALESCE(SUM(hours_participated), 0) AS total_hours 
+         FROM events WHERE user_id = ?"
+    );
+    $stats_stmt->bind_param("i", $user_id);
+    $stats_stmt->execute();
+    $stats_result = $stats_stmt->get_result();
+}
+
+if ($stats_result && $row = $stats_result->fetch_assoc()) {
+    $total_events = intval($row['total_events']);
+    $completed_events = intval($row['completed_events']);
+    $total_hours = floatval($row['total_hours']);
 }
 
 $total_pages = $total_events > 0 ? max(1, ceil($total_events / $events_per_page)) : 1;
 
-// Fetch events for current page only
 $events = [];
-$stmt = $conn->prepare("SELECT * FROM events WHERE user_id = ? ORDER BY event_date DESC LIMIT ? OFFSET ?");
-if ($stmt) {
-    $stmt->bind_param("iii", $user_id, $events_per_page, $offset);
-    $stmt->execute();
-    $result = $stmt->get_result();
+if ($role === 'admin') {
+    $list_query = "SELECT e.*, u.username 
+                   FROM events e 
+                   LEFT JOIN users u ON e.user_id = u.user_id 
+                   ORDER BY e.event_date DESC LIMIT ? OFFSET ?";
+    $list_stmt = $conn->prepare($list_query);
+    $list_stmt->bind_param("ii", $events_per_page, $offset);
+} else {
+    // Student View: Fetch only personal records [cite: 19, 41]
+    $list_query = "SELECT * FROM events WHERE user_id = ? 
+                   ORDER BY event_date DESC LIMIT ? OFFSET ?";
+    $list_stmt = $conn->prepare($list_query);
+    $list_stmt->bind_param("iii", $user_id, $events_per_page, $offset);
+}
+
+if ($list_stmt) {
+    $list_stmt->execute();
+    $result = $list_stmt->get_result();
     while ($row = $result->fetch_assoc()) {
         $events[] = $row;
     }
-    $stmt->close();
+    $list_stmt->close();
 }
 
 ?>
@@ -275,6 +295,13 @@ if ($stmt) {
                                         <div class="card event-card mb-4">
                                             <div class="event-card-header">
                                                 <div>
+                                                    <?php if ($role === 'admin' && !empty($evt['username'])): ?>
+                                                        <div class="mb-1">
+                                                            <span class="badge badge-secondary">
+                                                                <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($evt['username']); ?>
+                                                            </span>
+                                                        </div>
+                                                    <?php endif; ?>
                                                     <h5 class="event-card-title"><?php echo htmlspecialchars($evt['event_name']); ?></h5>
                                                     <?php if (!empty($evt['event_type'])): ?>
                                                         <span class="event-type-badge"><?php echo htmlspecialchars($evt['event_type']); ?></span>

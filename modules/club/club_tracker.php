@@ -13,7 +13,7 @@ $role = $_SESSION['role'] ?? 'student';
 
 // --- FLASH MESSAGES ---
 $success = '';
-$error   = '';
+$error = '';
 
 if (isset($_SESSION['success_message'])) { $success = $_SESSION['success_message']; unset($_SESSION['success_message']); }
 if (isset($_SESSION['error_message']))   { $error   = $_SESSION['error_message'];   unset($_SESSION['error_message']);   }

@@ -76,29 +76,35 @@ require_once 'event_backend.php';
                             <p class="section-subtitle">Track your overall event participation and upcoming activities.</p>
                         </div>
                     </div>
-                    <div class="row mb-4">
-                        <div class="col-md-3 mb-3">
+                    <div class="row mb-4 justify-content-center">
+                        <div class="col-lg-2 mb-2">
                             <div class="stat-card">
                                 <h5 class="stat-label">Total Events</h5>
                                 <div class="stat-value"><?php echo $total_events; ?></div>
                             </div>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-lg-2 mb-2">
                             <div class="stat-card">
                                 <h5 class="stat-label">Completed</h5>
                                 <div class="stat-value"><?php echo $completed_events; ?></div>
                             </div>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-lg-2 mb-2">
+                            <div class="stat-card">
+                                <h5 class="stat-label">Ongoing</h5>
+                                <div class="stat-value"><?php echo $ongoing_events; ?></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 mb-2">
                             <div class="stat-card">
                                 <h5 class="stat-label">Total Hours</h5>
                                 <div class="stat-value"><?php echo number_format($total_hours, 1); ?></div>
                             </div>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-lg-2 mb-2">
                             <div class="stat-card">
                                 <h5 class="stat-label">Upcoming</h5>
-                                <div class="stat-value"><?php echo $total_events - $completed_events; ?></div>
+                                <div class="stat-value"><?php echo $total_events - $completed_events - $ongoing_events; ?></div>
                             </div>
                         </div>
                     </div>

@@ -154,7 +154,8 @@ $offset = ($current_page - 1) * $events_per_page;
 // Fetch global stats
 if ($role === 'admin') {
     $stats_query = "SELECT COUNT(*) AS total_events, 
-                           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events, 
+                           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events,
+                           SUM(CASE WHEN status = 'ongoing' THEN 1 ELSE 0 END) AS ongoing_events, 
                            COALESCE(SUM(hours_participated), 0) AS total_hours 
                     FROM events" . ($status_filter ? " WHERE status = '$status_filter'" : "");
     $stats_result = $conn->query($stats_query);
@@ -162,7 +163,8 @@ if ($role === 'admin') {
     if ($status_filter) {
         $stats_stmt = $conn->prepare(
             "SELECT COUNT(*) AS total_events, 
-                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events, 
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events,
+                    SUM(CASE WHEN status = 'ongoing' THEN 1 ELSE 0 END) AS ongoing_events, 
                     COALESCE(SUM(hours_participated), 0) AS total_hours 
              FROM events WHERE user_id = ? AND status = ?"
         );
@@ -170,7 +172,8 @@ if ($role === 'admin') {
     } else {
         $stats_stmt = $conn->prepare(
             "SELECT COUNT(*) AS total_events, 
-                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events, 
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_events,
+                    SUM(CASE WHEN status = 'ongoing' THEN 1 ELSE 0 END) AS ongoing_events, 
                     COALESCE(SUM(hours_participated), 0) AS total_hours 
              FROM events WHERE user_id = ?"
         );
@@ -182,11 +185,13 @@ if ($role === 'admin') {
 
 $total_events = 0;
 $completed_events = 0;
+$ongoing_events = 0;
 $total_hours = 0;
 
 if ($stats_result && $row = $stats_result->fetch_assoc()) {
     $total_events = intval($row['total_events']);
     $completed_events = intval($row['completed_events']);
+    $ongoing_events = intval($row['ongoing_events'] ?? 0);
     $total_hours = floatval($row['total_hours']);
 }
 

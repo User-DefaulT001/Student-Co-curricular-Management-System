@@ -518,23 +518,25 @@ select.form-control option {
 .stat-card {
     background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
     border: 1px solid rgba(102, 126, 234, 0.18);
-    border-radius: 22px;
-    padding: 1.6rem;
-    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.08);
+    border-radius: 16px;
+    padding: 1rem 0.75rem;
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.06);
     color: var(--text-dark);
+    text-align: center;
 }
 
 .stat-card .stat-label {
     display: block;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.4rem;
     color: #475569;
-    font-size: 0.9rem;
-    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
+    font-weight: 600;
 }
 
 .stat-card .stat-value {
-    font-size: 2.4rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: var(--primary-color);
 }

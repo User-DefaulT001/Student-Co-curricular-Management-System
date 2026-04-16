@@ -31,8 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("isssssidis", $user_id, $event_name, $event_type, $event_date, $location, $description, $hours, $role_held, $certificate, $status);
                 
                 if ($stmt->execute()) {
-                    $success_message = 'Event added successfully!';
-                    $action = 'list';
+                    $_SESSION['success_message'] = 'Event added successfully!';
+                    header("Location: event_tracker.php");
+                    exit();
                 } else {
                     $error_message = 'Error adding event. Please try again.';
                 }
@@ -65,8 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("ssssssiisii", $event_name, $event_type, $event_date, $location, $description, $hours, $role_held, $certificate, $status, $event_id, $user_id);
                 
                 if ($stmt->execute()) {
-                    $success_message = 'Event updated successfully!';
-                    $action = 'list';
+                    $_SESSION['success_message'] = 'Event updated successfully!';
+                    header("Location: event_tracker.php");
+                    exit();
                 } else {
                     $error_message = 'Error updating event. Please try again.';
                 }
@@ -83,13 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param("ii", $event_id, $user_id);
             
             if ($stmt->execute()) {
-                $success_message = 'Event deleted successfully!';
+                $_SESSION['success_message'] = 'Event deleted successfully!';
             } else {
-                $error_message = 'Error deleting event. Please try again.';
+                $_SESSION['error_message'] = 'Error deleting event. Please try again.';
             }
             $stmt->close();
         }
-        $action = 'list';
+        header("Location: event_tracker.php");
+        exit();
     }
 }
 

@@ -18,6 +18,17 @@ $user_id = $_SESSION['user_id'];
 $role    = $_SESSION['role'];
 $error_message = '';
 $success_message = '';
+
+// Check for session messages (from previous redirects)
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+if (isset($_SESSION['error_message'])) {
+    $error_message = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
+}
+
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
 $event = null;
 

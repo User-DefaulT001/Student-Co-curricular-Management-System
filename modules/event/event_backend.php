@@ -1,4 +1,6 @@
 <?php
+// Enable output buffering to allow header redirects
+ob_start();
 
 // This file contains all PHP logic
 
@@ -32,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if ($stmt->execute()) {
                     $_SESSION['success_message'] = 'Event added successfully!';
+                    ob_end_clean();
                     header("Location: event_tracker.php");
                     exit();
                 } else {
@@ -57,16 +60,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($event_name) || empty($event_date)) {
             $error_message = 'Event name and date are required.';
         } else {
-            $stmt = $conn->prepare(
-                "UPDATE events SET event_name = ?, event_type = ?, event_date = ?, location = ?, description = ?, hours_participated = ?, role_held = ?, certificate_obtained = ?, status = ? 
-                 WHERE event_id = ? AND user_id = ?"
-            );
+            if ($role === 'admin') {
+                // Admins can update any event
+                $stmt = $conn->prepare(
+                    "UPDATE events SET event_name = ?, event_type = ?, event_date = ?, location = ?, description = ?, hours_participated = ?, role_held = ?, certificate_obtained = ?, status = ? 
+                     WHERE event_id = ?"
+                );
+                $stmt->bind_param("ssssssiisi", $event_name, $event_type, $event_date, $location, $description, $hours, $role_held, $certificate, $status, $event_id);
+            } else {
+                // Students can only update their own events
+                $stmt = $conn->prepare(
+                    "UPDATE events SET event_name = ?, event_type = ?, event_date = ?, location = ?, description = ?, hours_participated = ?, role_held = ?, certificate_obtained = ?, status = ? 
+                     WHERE event_id = ? AND user_id = ?"
+                );
+                $stmt->bind_param("ssssssiisii", $event_name, $event_type, $event_date, $location, $description, $hours, $role_held, $certificate, $status, $event_id, $user_id);
+            }
             
             if ($stmt) {
-                $stmt->bind_param("ssssssiisii", $event_name, $event_type, $event_date, $location, $description, $hours, $role_held, $certificate, $status, $event_id, $user_id);
-                
                 if ($stmt->execute()) {
                     $_SESSION['success_message'] = 'Event updated successfully!';
+                    ob_end_clean();
                     header("Location: event_tracker.php");
                     exit();
                 } else {
@@ -80,10 +93,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Delete event
         $event_id = intval($_POST['event_id'] ?? 0);
         
-        $stmt = $conn->prepare("DELETE FROM events WHERE event_id = ? AND user_id = ?");
-        if ($stmt) {
+        if ($role === 'admin') {
+            // Admins can delete any event
+            $stmt = $conn->prepare("DELETE FROM events WHERE event_id = ?");
+            $stmt->bind_param("i", $event_id);
+        } else {
+            // Students can only delete their own events
+            $stmt = $conn->prepare("DELETE FROM events WHERE event_id = ? AND user_id = ?");
             $stmt->bind_param("ii", $event_id, $user_id);
-            
+        }
+        
+        if ($stmt) {
             if ($stmt->execute()) {
                 $_SESSION['success_message'] = 'Event deleted successfully!';
             } else {
@@ -91,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt->close();
         }
+        ob_end_clean();
         header("Location: event_tracker.php");
         exit();
     }
@@ -99,9 +120,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Handle edit action
 if ($action === 'edit' && isset($_GET['id'])) {
     $event_id = intval($_GET['id']);
-    $stmt = $conn->prepare("SELECT * FROM events WHERE event_id = ? AND user_id = ?");
-    if ($stmt) {
+    
+    if ($role === 'admin') {
+        // Admins can edit any event
+        $stmt = $conn->prepare("SELECT e.*, u.username FROM events e LEFT JOIN users u ON e.user_id = u.user_id WHERE e.event_id = ?");
+        $stmt->bind_param("i", $event_id);
+    } else {
+        // Students can only edit their own events
+        $stmt = $conn->prepare("SELECT * FROM events WHERE event_id = ? AND user_id = ?");
         $stmt->bind_param("ii", $event_id, $user_id);
+    }
+    
+    if ($stmt) {
         $stmt->execute();
         $result = $stmt->get_result();
         if ($result->num_rows > 0) {

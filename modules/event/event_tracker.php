@@ -29,8 +29,14 @@ if (isset($_SESSION['error_message'])) {
     unset($_SESSION['error_message']);
 }
 
-$action = isset($_GET['action']) ? $_GET['action'] : 'list';
+// Always reset to list view on page load to prevent edit modal from showing on refresh
+$action = 'list';
 $event = null;
+
+// Only allow edit action on direct GET request with edit parameters (not after form submission)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) {
+    $action = 'edit';
+}
 
 // Include backend logic
 require_once 'event_backend.php';
@@ -313,6 +319,28 @@ require_once 'event_backend.php';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Clean URL on page load if we just submitted a form
+        (function() {
+            const skipEditModal = sessionStorage.getItem('skipEditModal');
+            if (skipEditModal) {
+                sessionStorage.removeItem('skipEditModal');
+                // Replace the current history entry with clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            // Also ensure that if we somehow have edit parameters without a form submission, clean them
+            const currentUrl = new URL(window.location);
+            if (currentUrl.searchParams.has('action') && currentUrl.searchParams.get('action') === 'edit') {
+                // Check if this looks like we're on the page after form submission (not a direct edit link)
+                // In that case, clean it
+                if (!skipEditModal) {
+                    // Only if we're sure it's not intended to be an edit view
+                    // This is a safety net for browser back button or URL mangling
+                    // console.log('Cleaning stray edit parameters');
+                }
+            }
+        })();
+
         function resetForm() {
             document.getElementById('eventForm').reset();
             document.getElementById('action_type').value = 'add';
@@ -331,7 +359,7 @@ require_once 'event_backend.php';
         }
 
         // If editing, populate the form
-        <?php if ($action === 'edit' && $event): ?>
+        <?php if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'edit' && $event): ?>
         document.getElementById('action_type').value = 'update';
         document.getElementById('event_id').value = '<?php echo $event['event_id']; ?>';
         document.getElementById('modalTitle').textContent = 'Edit Event';
@@ -347,6 +375,23 @@ require_once 'event_backend.php';
         
         $('#eventModal').modal('show');
         <?php endif; ?>
+
+        // Handle form submission to set flag for URL cleanup
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            const actionType = document.getElementById('action_type').value;
+            if (actionType === 'add' || actionType === 'update' || actionType === 'delete') {
+                // Set flag to prevent showing stale URL
+                sessionStorage.setItem('skipEditModal', 'true');
+            }
+        });
+
+        // Clean URL when modal is closed/dismissed (user clicked X or clicked outside)
+        $('#eventModal').on('hidden.bs.modal', function(e) {
+            const currentUrl = new URL(window.location);
+            if (currentUrl.searchParams.has('action') && currentUrl.searchParams.get('action') === 'edit') {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
 
         function updateSort() {
             const sortBy = document.getElementById('sortBy').value;
